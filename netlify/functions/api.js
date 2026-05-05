@@ -1,7 +1,7 @@
 // netlify/functions/api.js
 // This runs on Netlify's servers — no CORS issues, works on all devices.
 
-const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_URL || "YOUR_APPS_SCRIPT_URL_HERE";
+const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_URL || "https://script.google.com/macros/s/AKfycbxI8bUi-CsEY_zeoxqwS6I1AtHTtFDQ3Yvs17aaPzmaWxyzvtG3aZsnhvMkcKKAmnfvHw/exec";
 
 exports.handler = async function (event) {
   const headers = {
