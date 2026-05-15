@@ -1,7 +1,7 @@
 // netlify/functions/api.js
 // Proxies all requests to Google Apps Script server-side — no CORS issues on any device.
 
-const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_URL || "https://script.google.com/macros/s/AKfycbxI8bUi-CsEY_zeoxqwS6I1AtHTtFDQ3Yvs17aaPzmaWxyzvtG3aZsnhvMkcKKAmnfvHw/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxI8bUi-CsEY_zeoxqwS6I1AtHTtFDQ3Yvs17aaPzmaWxyzvtG3aZsnhvMkcKKAmnfvHw/exec";
 
 exports.handler = async function (event) {
   const headers = {
