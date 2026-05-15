@@ -1039,8 +1039,16 @@ async function doAdminLogin() {
       document.getElementById("admin-login-card").classList.add("hidden");
       document.getElementById("admin-dash").classList.remove("hidden");
       loadAdminData();
-    } else alert$("admin-login-alert", res.error, "error");
-  } catch(e) { alert$("admin-login-alert", "Connection error.", "error"); }
+    } else {
+      // Show full debug info if available
+      const debugInfo = res.debug
+        ? JSON.stringify(res.debug, null, 2)
+        : "";
+      alert$("admin-login-alert", res.error + (debugInfo ? "
+" + debugInfo : ""), "error");
+      console.error("Admin login error:", res);
+    }
+  } catch(e) { alert$("admin-login-alert", "Connection error: " + e.message, "error"); }
 }
 
 function adminLogout() {
