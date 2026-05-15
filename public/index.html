@@ -380,13 +380,13 @@ textarea{resize:none;min-height:68px;}
 
 <!-- ══ LOADING ════════════════════════════════════════════════ -->
 <div id="loading-screen">
-  <img src="event_logo.png"
+  <img src="logo-program.png"
        class="load-logo" alt="The Journey to I Do"
        onerror="this.style.opacity='0'">
   <div class="load-partners">
-    <img src="sr_logo.png" alt="Syababurroja" onerror="this.style.display='none'">
+    <img src="logo-syababurroja.png" alt="Syababurroja" onerror="this.style.display='none'">
     <div class="load-divider"></div>
-    <img src="afiah_logo.png" alt="Persatuan Afiah" onerror="this.style.display='none'">
+    <img src="logo-afiah.png" alt="Persatuan Afiah" onerror="this.style.display='none'">
   </div>
   <div class="load-bar-track"><div class="load-bar-fill"></div></div>
 </div>
@@ -407,13 +407,13 @@ textarea{resize:none;min-height:68px;}
 <!-- ══ AUTH SCREEN ════════════════════════════════════════════ -->
 <div id="auth-screen">
   <div class="auth-wrap">
-    <img src="event_logo.png"
+    <img src="logo-program.png"
          class="auth-prog-logo" alt="Logo" onerror="this.style.display='none'">
     <div class="ornament">♡ ✦ ♡</div>
     <div class="auth-partner-logos">
-      <img src="sr_logo.png" alt="Syababurroja" onerror="this.style.display='none'">
+      <img src="logo-syababurroja.png" alt="Syababurroja" onerror="this.style.display='none'">
       <div class="auth-div-line"></div>
-      <img src="afiah_logo.png" alt="Persatuan Afiah" onerror="this.style.display='none'">
+      <img src="logo-afiah.png" alt="Persatuan Afiah" onerror="this.style.display='none'">
     </div>
 
     <div class="auth-card">
@@ -464,7 +464,7 @@ textarea{resize:none;min-height:68px;}
 <div id="app-screen" style="display:none;">
 
   <header class="app-header">
-    <img src="event_logo.png" class="h-logo" alt="Logo" onerror="this.style.display='none'">
+    <img src="logo-program.png" class="h-logo" alt="Logo" onerror="this.style.display='none'">
     <div class="h-right">
       <div>
         <div class="h-name" id="hdr-name"></div>
@@ -476,11 +476,11 @@ textarea{resize:none;min-height:68px;}
 
   <nav class="app-nav" id="app-nav">
     <button class="nav-btn active" id="nav-progress" onclick="showTab('progress',this)">
-      <img src="icons8-progress-100.png" class="nav-icon-img" alt="">
+      <img src="icon-progress.png" class="nav-icon-img" alt="">
       My Progress
     </button>
     <button class="nav-btn" id="nav-checkin" onclick="showTab('checkin',this)">
-      <img src="icons8-qr-code-100.png" class="nav-icon-img" alt="">
+      <img src="icon-checkin.png" class="nav-icon-img" alt="">
       Check-in
     </button>
     <button class="nav-btn hidden" id="nav-admin" onclick="showTab('admin',this)">
@@ -1089,13 +1089,16 @@ async function loadSessions() {
     if (!res.sessions.length) { el.innerHTML = '<p style="color:var(--ink3);font-size:0.83rem;">No sessions yet.</p>'; return; }
     el.innerHTML = res.sessions.map(s => {
       const qrUrl = location.origin + location.pathname + "?token=" + s["QR Token"];
+      const pass  = s["Session Pass"] !== undefined && s["Session Pass"] !== null && s["Session Pass"] !== ""
+                    ? String(s["Session Pass"]).padStart(4, "0")
+                    : "—";
       return `<div style="padding:12px 0;border-bottom:1px solid var(--blush);">
         <div style="font-weight:500;font-size:0.86rem;margin-bottom:6px;">
           ${s["Label"]} <span style="color:var(--ink3);">(${s["Session ID"]})</span>
         </div>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
           <span style="font-size:0.7rem;color:var(--ink3);">Pass:</span>
-          <span class="pass-display">${s["Session Pass"]}</span>
+          <span class="pass-display">${pass}</span>
           <a href="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(qrUrl)}"
              target="_blank" style="color:var(--rose);font-size:0.78rem;">↗ Open QR</a>
         </div>
