@@ -1039,16 +1039,8 @@ async function doAdminLogin() {
       document.getElementById("admin-login-card").classList.add("hidden");
       document.getElementById("admin-dash").classList.remove("hidden");
       loadAdminData();
-    } else {
-      // Show full debug info if available
-      const debugInfo = res.debug
-        ? JSON.stringify(res.debug, null, 2)
-        : "";
-      alert$("admin-login-alert", res.error + (debugInfo ? "
-" + debugInfo : ""), "error");
-      console.error("Admin login error:", res);
-    }
-  } catch(e) { alert$("admin-login-alert", "Connection error: " + e.message, "error"); }
+    } else alert$("admin-login-alert", res.error, "error");
+  } catch(e) { alert$("admin-login-alert", "Connection error.", "error"); }
 }
 
 function adminLogout() {
@@ -1097,16 +1089,13 @@ async function loadSessions() {
     if (!res.sessions.length) { el.innerHTML = '<p style="color:var(--ink3);font-size:0.83rem;">No sessions yet.</p>'; return; }
     el.innerHTML = res.sessions.map(s => {
       const qrUrl = location.origin + location.pathname + "?token=" + s["QR Token"];
-      const pass  = s["Session Pass"] !== undefined && s["Session Pass"] !== null && s["Session Pass"] !== ""
-                    ? String(s["Session Pass"]).padStart(4, "0")
-                    : "—";
       return `<div style="padding:12px 0;border-bottom:1px solid var(--blush);">
         <div style="font-weight:500;font-size:0.86rem;margin-bottom:6px;">
           ${s["Label"]} <span style="color:var(--ink3);">(${s["Session ID"]})</span>
         </div>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
           <span style="font-size:0.7rem;color:var(--ink3);">Pass:</span>
-          <span class="pass-display">${pass}</span>
+          <span class="pass-display">${s["Session Pass"]}</span>
           <a href="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(qrUrl)}"
              target="_blank" style="color:var(--rose);font-size:0.78rem;">↗ Open QR</a>
         </div>
