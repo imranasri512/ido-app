@@ -1,4 +1,5 @@
 // netlify/functions/api.js
+// Proxies all requests to Google Apps Script server-side — no CORS issues on any device.
 
 const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_URL || "https://script.google.com/macros/s/AKfycbxI8bUi-CsEY_zeoxqwS6I1AtHTtFDQ3Yvs17aaPzmaWxyzvtG3aZsnhvMkcKKAmnfvHw/exec";
 
@@ -36,21 +37,21 @@ exports.handler = async function (event) {
 
     const text = await response.text();
 
-    // Try to parse as JSON
+    let json;
     try {
-      const json = JSON.parse(text);
-      return { statusCode: 200, headers, body: JSON.stringify(json) };
+      json = JSON.parse(text);
     } catch (e) {
-      // Not JSON — return raw response so user can see what Apps Script sent back
       return {
         statusCode: 200,
         headers,
         body: JSON.stringify({
           ok: false,
-          error: text.substring(0, 300),  // show raw response as the error message
+          error: "Server returned unexpected response. Make sure Apps Script is deployed with 'Anyone' access (not 'Anyone with Google account').",
         }),
       };
     }
+
+    return { statusCode: 200, headers, body: JSON.stringify(json) };
 
   } catch (err) {
     return {
