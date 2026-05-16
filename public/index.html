@@ -722,19 +722,49 @@ function clearAlert(id) {
 
 // ── LOADING ───────────────────────────────────────────────────
 window.addEventListener("load", () => {
-  setTimeout(() => {
+  setTimeout(async () => {
     const saved  = localStorage.getItem(LS_CODE);
     const savN   = localStorage.getItem(LS_NAME);
     const savAdm = localStorage.getItem(LS_IS_ADMIN) === "1";
     const ls = document.getElementById("loading-screen");
     ls.classList.add("fade-out");
-    setTimeout(() => {
+
+    setTimeout(async () => {
       ls.style.display = "none";
+
       if (saved && savN) {
-        curCode = saved; curName = savN; isAdmin = savAdm;
-        enterApp();
-        const tok = new URLSearchParams(location.search).get("token");
-        if (tok) { switchToTab("checkin"); handleQR(location.href); }
+        // Admin code — no backend verification needed
+        if (savAdm) {
+          curCode = saved; curName = savN; isAdmin = true;
+          enterApp();
+          const tok = new URLSearchParams(location.search).get("token");
+          if (tok) { switchToTab("checkin"); handleQR(location.href); }
+          return;
+        }
+
+        // Participant — verify code still exists in backend
+        try {
+          const res = await api({ action: "login", code: saved });
+          if (res.ok && res.name === savN) {
+            // Valid — auto-login silently
+            curCode = saved; curName = savN; isAdmin = false;
+            enterApp();
+            const tok = new URLSearchParams(location.search).get("token");
+            if (tok) { switchToTab("checkin"); handleQR(location.href); }
+          } else {
+            // Code no longer valid — clear and show auth
+            localStorage.removeItem(LS_CODE);
+            localStorage.removeItem(LS_NAME);
+            localStorage.removeItem(LS_IS_ADMIN);
+            document.getElementById("auth-screen").style.display = "block";
+          }
+        } catch(e) {
+          // Network error — still let them in with saved data, they'll get errors later if truly invalid
+          curCode = saved; curName = savN; isAdmin = false;
+          enterApp();
+          const tok = new URLSearchParams(location.search).get("token");
+          if (tok) { switchToTab("checkin"); handleQR(location.href); }
+        }
       } else {
         document.getElementById("auth-screen").style.display = "block";
       }
