@@ -929,9 +929,12 @@ window.addEventListener("load", () => {
         // Admin code — no backend verification needed
         if (savAdm) {
           curCode = saved; curName = savN; isAdmin = true;
-          enterApp();
-          const tok = new URLSearchParams(location.search).get("token");
-          if (tok) { switchToTab("checkin"); handleQR(location.href); }
+          await enterApp();
+          switchToTab("admin");
+          // Always show login card on return — adminKey is not persisted
+          document.getElementById("admin-login-card").classList.remove("hidden");
+          document.getElementById("admin-dash").classList.add("hidden");
+          adminKey = null;
           return;
         }
 
@@ -983,8 +986,11 @@ async function doLogin() {
   if (raw === ADMIN_SR) {
     curCode = raw; curName = "Admin"; isAdmin = true;
     save(raw, "Admin", true);
-    enterApp();
+    await enterApp();
     switchToTab("admin");
+    // Make sure login card is visible and dash is hidden (adminKey not set yet)
+    document.getElementById("admin-login-card").classList.remove("hidden");
+    document.getElementById("admin-dash").classList.add("hidden");
     return;
   }
 
