@@ -803,7 +803,13 @@ async function doRegister() {
       curCode = res.code; curName = res.name; isAdmin = false;
       save(curCode, curName, false);
     } else {
-      alert$("reg-alert", res.error, "error");
+      if (res.error && res.error.includes("already registered")) {
+        const el = document.getElementById("reg-alert");
+        el.innerHTML = res.error + ' — <a href="#" onclick="switchAuthTab(\'login\');return false;" style="color:var(--rose2);font-weight:500;text-decoration:underline;">Log in with your existing code →</a>';
+        el.className = "alert alert-error show";
+      } else {
+        alert$("reg-alert", res.error, "error");
+      }
     }
   } catch(e) {
     alert$("reg-alert", "Connection error — check your internet and try again.", "error");
