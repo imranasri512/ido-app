@@ -372,6 +372,25 @@ textarea{resize:none;min-height:68px;}
 }
 
 .hidden{display:none!important;}
+
+/* ── Floor plan fullscreen ── */
+#fp-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:999;
+  display:none;align-items:center;justify-content:center;
+  overflow:auto;-webkit-overflow-scrolling:touch;
+}
+#fp-overlay.show{display:flex;}
+#fp-overlay img{
+  max-width:none;width:100%;
+  touch-action:pinch-zoom;
+}
+#fp-close{
+  position:fixed;top:16px;right:16px;z-index:1000;
+  background:rgba(255,255,255,0.15);border:none;border-radius:50%;
+  width:40px;height:40px;font-size:1.2rem;color:white;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(4px);
+}
 .spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:5px;}
 @keyframes spin{to{transform:rotate(360deg);}}
 </style>
@@ -483,6 +502,14 @@ textarea{resize:none;min-height:68px;}
       <img src="icon-checkin.png" class="nav-icon-img" alt="">
       Check-in
     </button>
+    <button class="nav-btn" id="nav-info" onclick="showTab('info',this)">
+      <span style="font-size:1.1rem;display:block;margin-bottom:2px;">🗺️</span>
+      Info
+    </button>
+    <button class="nav-btn hidden" id="nav-leaderboard" onclick="showTab('leaderboard',this)">
+      <span style="font-size:1.1rem;display:block;margin-bottom:2px;">🏆</span>
+      Leaderboard
+    </button>
     <button class="nav-btn hidden" id="nav-admin" onclick="showTab('admin',this)">
       <span style="font-size:1.1rem;display:block;margin-bottom:2px;">⚙️</span>
       Admin
@@ -502,6 +529,10 @@ textarea{resize:none;min-height:68px;}
         <div class="rb-title" id="rb-title"></div>
         <div class="rb-sub"   id="rb-sub"></div>
       </div>
+    </div>
+
+    <!-- Prize tier reveal — shown only after program ends -->
+    <div id="prize-reveal" class="hidden" style="margin:12px 17px 0;">
     </div>
 
     <div class="card pts-card">
@@ -649,6 +680,90 @@ textarea{resize:none;min-height:68px;}
     </div>
   </div>
 
+  <!-- ── INFO ─────────────────────────────────────────────── -->
+  <div id="page-info" class="page">
+    <div class="container">
+
+      <div class="card" style="padding:0;overflow:hidden;">
+        <div style="background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);padding:16px 20px;">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:1.25rem;color:white;">Floor Plan</div>
+          <div style="font-size:0.77rem;color:rgba(255,255,255,0.45);margin-top:2px;">Pinch to zoom • Tap image to open full screen</div>
+        </div>
+
+        <!-- Floor plan image — pinch-to-zoom enabled -->
+        <div style="overflow:auto;-webkit-overflow-scrolling:touch;background:#f8f6f1;">
+          <img src="floorplan.jpg" alt="Floor Plan"
+               id="floorplan-img"
+               style="width:100%;display:block;cursor:zoom-in;"
+               onclick="openFloorplan()"
+               onerror="this.style.display='none'"
+        </div>
+      </div>
+
+      <!-- Key locations legend -->
+      <div class="card">
+        <div class="card-title">Key locations</div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span style="font-size:1.4rem;flex-shrink:0;">🎁</span>
+            <div>
+              <div style="font-size:0.88rem;font-weight:500;">Gift Claim Room</div>
+              <div style="font-size:0.77rem;color:var(--ink3);">Bilik Kuliah — collect your prize here after the program ends</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span style="font-size:1.4rem;flex-shrink:0;">📋</span>
+            <div>
+              <div style="font-size:0.88rem;font-weight:500;">Registration</div>
+              <div style="font-size:0.77rem;color:var(--ink3);">Main hall entrance — register and get your SR code here</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span style="font-size:1.4rem;flex-shrink:0;">🍽️</span>
+            <div>
+              <div style="font-size:0.88rem;font-weight:500;">Dining rooms</div>
+              <div style="font-size:0.77rem;color:var(--ink3);">Bilik Makan Muslimah (left) · Bilik Makan Muslimin (right)</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span style="font-size:1.4rem;flex-shrink:0;">🕌</span>
+            <div>
+              <div style="font-size:0.88rem;font-weight:500;">Main hall</div>
+              <div style="font-size:0.77rem;color:var(--ink3);">Sessions held here — Muslimah and Muslimin seating sections</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── LEADERBOARD ──────────────────────────────────────── -->
+  <div id="page-leaderboard" class="page">
+    <div class="container">
+      <div class="card" style="text-align:center;background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);color:white;border:none;">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:1.6rem;margin-bottom:4px;">🏆 Leaderboard</div>
+        <div style="font-size:0.8rem;color:rgba(255,255,255,0.5);">The Journey to "I Do" — Final Rankings</div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <div style="flex:1;background:linear-gradient(135deg,#c8952a,#e8b84b);border-radius:10px;padding:12px;text-align:center;">
+          <div style="font-size:1.1rem;">🥇</div>
+          <div style="font-size:0.75rem;color:white;font-weight:500;margin-top:2px;">Special Prize</div>
+          <div style="font-size:0.68rem;color:rgba(255,255,255,0.75);">Rank 1–30</div>
+        </div>
+        <div style="flex:1;background:linear-gradient(135deg,#6b8cba,#8aaad0);border-radius:10px;padding:12px;text-align:center;">
+          <div style="font-size:1.1rem;">🥈</div>
+          <div style="font-size:0.75rem;color:white;font-weight:500;margin-top:2px;">Consolation</div>
+          <div style="font-size:0.68rem;color:rgba(255,255,255,0.75);">Rank 31–90</div>
+        </div>
+      </div>
+      <div class="card" id="leaderboard-list">
+        <div style="text-align:center;color:var(--ink3);font-size:0.85rem;padding:20px 0;">Loading leaderboard…</div>
+      </div>
+      <button class="btn btn-ghost" style="margin-top:10px;" onclick="loadLeaderboard()">↻ Refresh</button>
+    </div>
+  </div>
+
   <!-- ── ADMIN ─────────────────────────────────────────── -->
   <div id="page-admin" class="page">
     <div class="container">
@@ -687,11 +802,45 @@ textarea{resize:none;min-height:68px;}
 
         <div class="card">
           <div class="card-title">Award Q&amp;A points</div>
-          <div class="card-sub">+5 pts per question. Max 20 bonus pts per participant.</div>
+          <div class="card-sub">Award 1–5 pts per question based on quality. Max 20 bonus pts per participant.</div>
           <div class="field"><label class="fl">SR code</label><input type="text" id="qna-code" class="code-input" placeholder="SR-000" maxlength="10" oninput="this.value=this.value.toUpperCase()"></div>
+          <div class="field">
+            <label class="fl">Points to award</label>
+            <div style="display:flex;gap:8px;margin-top:4px;">
+              <button type="button" class="pts-btn" onclick="setQnaPts(this,1)" data-v="1" style="flex:1;padding:10px 4px;border-radius:8px;border:1.5px solid var(--blush3);background:var(--blush);font-family:'DM Mono',monospace;font-size:0.9rem;cursor:pointer;transition:all 0.15s;">1</button>
+              <button type="button" class="pts-btn" onclick="setQnaPts(this,2)" data-v="2" style="flex:1;padding:10px 4px;border-radius:8px;border:1.5px solid var(--blush3);background:var(--blush);font-family:'DM Mono',monospace;font-size:0.9rem;cursor:pointer;transition:all 0.15s;">2</button>
+              <button type="button" class="pts-btn" onclick="setQnaPts(this,3)" data-v="3" style="flex:1;padding:10px 4px;border-radius:8px;border:1.5px solid var(--blush3);background:var(--blush);font-family:'DM Mono',monospace;font-size:0.9rem;cursor:pointer;transition:all 0.15s;">3</button>
+              <button type="button" class="pts-btn" onclick="setQnaPts(this,4)" data-v="4" style="flex:1;padding:10px 4px;border-radius:8px;border:1.5px solid var(--blush3);background:var(--blush);font-family:'DM Mono',monospace;font-size:0.9rem;cursor:pointer;transition:all 0.15s;">4</button>
+              <button type="button" class="pts-btn active-pts" onclick="setQnaPts(this,5)" data-v="5" style="flex:1;padding:10px 4px;border-radius:8px;border:1.5px solid var(--rose2);background:var(--rose2);color:white;font-family:'DM Mono',monospace;font-size:0.9rem;cursor:pointer;transition:all 0.15s;font-weight:500;">5</button>
+            </div>
+            <input type="hidden" id="qna-pts-val" value="5">
+          </div>
           <div class="field"><label class="fl">Note (optional)</label><input type="text" id="qna-note" placeholder="e.g. Great question about mahr"></div>
-          <button class="btn btn-gold" onclick="awardQnA()">Award +5 points</button>
+          <button class="btn btn-gold" onclick="awardQnA()">Award points</button>
           <div id="qna-alert" class="alert"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Certificate export</div>
+          <div class="card-sub">Download a CSV of participants who attended all 4 sessions — ready to upload to Canva Bulk Create.</div>
+          <button class="btn btn-navy" onclick="exportCsv()">↓ Export names (CSV)</button>
+          <div id="csv-alert" class="alert"></div>
+        </div>
+
+        <div class="card" style="border:2px solid var(--red-bg);">
+          <div class="card-title" style="color:var(--red);">End Program</div>
+          <div class="card-sub">This will lock all check-ins and reveal the leaderboard and prize tiers to all participants. This cannot be undone.</div>
+          <div id="end-program-area">
+            <button class="btn" style="background:var(--red);color:white;" onclick="showEndConfirm()" id="end-program-btn">End program &amp; reveal leaderboard</button>
+          </div>
+          <div id="end-confirm-area" class="hidden">
+            <div class="alert alert-error show" style="margin-bottom:12px;">Are you sure? This will permanently lock the program and reveal all results to participants.</div>
+            <div style="display:flex;gap:10px;">
+              <button class="btn btn-ghost" style="flex:1;" onclick="hideEndConfirm()">Cancel</button>
+              <button class="btn" style="flex:1;background:var(--red);color:white;" onclick="doEndProgram()">Yes, end program</button>
+            </div>
+          </div>
+          <div id="end-alert" class="alert"></div>
         </div>
 
         <div class="card">
@@ -703,6 +852,12 @@ textarea{resize:none;min-height:68px;}
         <button class="btn btn-ghost" style="margin:4px 0 24px;" onclick="adminLogout()">Sign out</button>
       </div>
     </div>
+  </div>
+
+  <!-- Floor plan fullscreen viewer -->
+  <div id="fp-overlay" onclick="closeFloorplan()">
+    <button id="fp-close" onclick="closeFloorplan()">✕</button>
+    <img src="floorplan.jpg" alt="Floor Plan" style="width:100%;touch-action:pinch-zoom;">
   </div>
 
 </div><!-- /app-screen -->
@@ -890,13 +1045,25 @@ function save(code, name, admin) {
   localStorage.setItem(LS_IS_ADMIN, admin ? "1" : "0");
 }
 
-function enterApp() {
+async function enterApp() {
   document.getElementById("auth-screen").style.display = "none";
   document.getElementById("app-screen").style.display  = "block";
   document.getElementById("hdr-name").textContent = curName;
   document.getElementById("hdr-code").textContent = curCode;
-  // Show admin tab only for admin
   document.getElementById("nav-admin").classList.toggle("hidden", !isAdmin);
+
+  // Check program status to show/hide leaderboard tab
+  try {
+    const res = await api({ action: "programStatus" });
+    if (res.ok && res.ended) {
+      document.getElementById("nav-leaderboard").classList.remove("hidden");
+    } else {
+      document.getElementById("nav-leaderboard").classList.add("hidden");
+    }
+  } catch(e) {
+    document.getElementById("nav-leaderboard").classList.add("hidden");
+  }
+
   if (!isAdmin) loadProgress();
 }
 
@@ -920,6 +1087,7 @@ function showTab(id, btn) {
   document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
   document.getElementById("page-" + id).classList.add("active");
   if (btn) btn.classList.add("active");
+  if (id === "leaderboard") loadLeaderboard();
 }
 function switchToTab(id) {
   const btn = document.getElementById("nav-" + id);
@@ -946,8 +1114,8 @@ function renderProgress(r) {
 
   const pct  = Math.min(100, (r.totalPoints / r.maxPoints) * 100);
   const tPct = (r.rewardThreshold / r.maxPoints) * 100;
-  document.getElementById("pts-bar").style.width    = pct + "%";
-  document.getElementById("pts-thresh").style.left  = tPct + "%";
+  document.getElementById("pts-bar").style.width   = pct + "%";
+  document.getElementById("pts-thresh").style.left = tPct + "%";
 
   const badge = document.getElementById("reward-badge");
   badge.style.display = "flex";
@@ -955,12 +1123,32 @@ function renderProgress(r) {
     badge.className = "reward-badge qualified";
     document.getElementById("rb-icon").textContent  = "✅";
     document.getElementById("rb-title").textContent = "Reward Qualified!";
-    document.getElementById("rb-sub").textContent   = "You've earned " + r.totalPoints + " pts — collect your reward from the committee.";
+    document.getElementById("rb-sub").textContent   = "You've earned " + r.totalPoints + " pts.";
   } else {
     badge.className = "reward-badge not-qualified";
     document.getElementById("rb-icon").textContent  = "❌";
     document.getElementById("rb-title").textContent = "Not yet qualified";
     document.getElementById("rb-sub").textContent   = (r.rewardThreshold - r.totalPoints) + " more points needed for your reward.";
+  }
+
+  // Prize tier reveal (only after program ends)
+  const prizeDiv = document.getElementById("prize-reveal");
+  if (r.programEnded && r.prizeTier) {
+    prizeDiv.classList.remove("hidden");
+    const prizes = {
+      special     : { icon:"🥇", label:"Special Prize", color:"linear-gradient(135deg,#c8952a,#e8b84b)", msg:"Congratulations! You are among the top 30 — you have won a Special Prize!" },
+      consolation : { icon:"🥈", label:"Consolation Prize", color:"linear-gradient(135deg,#6b8cba,#8aaad0)", msg:"Congratulations! You have qualified for a Consolation Prize!" },
+      none        : { icon:"🎗️", label:"Thank you for participating!", color:"linear-gradient(135deg,var(--ink2),var(--ink))", msg:"Thank you for joining the program. You did not qualify for a prize this time, but we appreciate your participation!" },
+    };
+    const p = prizes[r.prizeTier] || prizes.none;
+    prizeDiv.innerHTML = `<div style="background:${p.color};border-radius:13px;padding:18px;text-align:center;color:white;">
+      <div style="font-size:2rem;margin-bottom:6px;">${p.icon}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:1.25rem;font-weight:600;margin-bottom:4px;">${p.label}</div>
+      <div style="font-size:0.8rem;opacity:0.88;line-height:1.5;">${p.msg}</div>
+    </div>`;
+  } else {
+    prizeDiv.classList.add("hidden");
+    prizeDiv.innerHTML = "";
   }
 
   const grid = document.getElementById("sessions-grid");
@@ -1263,20 +1451,112 @@ async function createSession() {
   } catch(e) { alert$("session-alert", "Connection error.", "error"); }
 }
 
+// Q&A points selector
+let selectedQnaPts = 5;
+function setQnaPts(btn, val) {
+  selectedQnaPts = val;
+  document.querySelectorAll(".pts-btn").forEach(b => {
+    b.style.background  = "var(--blush)";
+    b.style.borderColor = "var(--blush3)";
+    b.style.color       = "var(--ink2)";
+    b.style.fontWeight  = "400";
+  });
+  btn.style.background  = "var(--rose2)";
+  btn.style.borderColor = "var(--rose2)";
+  btn.style.color       = "white";
+  btn.style.fontWeight  = "500";
+  document.getElementById("qna-pts-val").value = val;
+}
+
 async function awardQnA() {
-  const code = document.getElementById("qna-code").value.trim().toUpperCase();
-  const note = document.getElementById("qna-note").value.trim();
+  const code   = document.getElementById("qna-code").value.trim().toUpperCase();
+  const note   = document.getElementById("qna-note").value.trim();
+  const points = selectedQnaPts || 5;
   if (!code) { alert$("qna-alert", "Enter an SR code.", "error"); return; }
   try {
-    const res = await apiPost({ action: "awardQnA", key: adminKey, code, points: 5, note });
+    const res = await apiPost({ action: "awardQnA", key: adminKey, code, points, note });
     if (res.ok) {
-      alert$("qna-alert", "Awarded 5 pts to " + res.name, "success");
+      alert$("qna-alert", "Awarded " + res.pointsAwarded + " pts to " + res.name, "success");
       document.getElementById("qna-code").value = "";
       document.getElementById("qna-note").value = "";
       loadAdminData();
     } else alert$("qna-alert", res.error, "error");
   } catch(e) { alert$("qna-alert", "Connection error.", "error"); }
 }
+
+// CSV export
+async function exportCsv() {
+  try {
+    const res = await api({ action: "exportCsv", key: adminKey });
+    if (!res.ok) { alert$("csv-alert", res.error, "error"); return; }
+    if (!res.names.length) { alert$("csv-alert", "No participants have attended all 4 sessions yet.", "info"); return; }
+    // Build CSV
+    const csv = "Name\n" + res.names.map(n => `"${n}"`).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href = url; a.download = "certificate-names.csv"; a.click();
+    URL.revokeObjectURL(url);
+    alert$("csv-alert", res.count + " names exported successfully.", "success");
+  } catch(e) { alert$("csv-alert", "Connection error.", "error"); }
+}
+
+// End program
+function showEndConfirm() {
+  document.getElementById("end-program-btn").classList.add("hidden");
+  document.getElementById("end-confirm-area").classList.remove("hidden");
+}
+function hideEndConfirm() {
+  document.getElementById("end-confirm-area").classList.add("hidden");
+  document.getElementById("end-program-btn").classList.remove("hidden");
+}
+async function doEndProgram() {
+  try {
+    const res = await apiPost({ action: "endProgram", key: adminKey });
+    if (res.ok) {
+      alert$("end-alert", "Program ended. Leaderboard is now live for all participants.", "success");
+      document.getElementById("end-confirm-area").classList.add("hidden");
+      document.getElementById("end-program-btn").classList.add("hidden");
+      loadAdminData();
+    } else alert$("end-alert", res.error, "error");
+  } catch(e) { alert$("end-alert", "Connection error.", "error"); }
+}
+
+// Leaderboard
+async function loadLeaderboard() {
+  try {
+    const res = await api({ action: "leaderboard" });
+    const el = document.getElementById("leaderboard-list");
+    if (!res.ok) { el.innerHTML = `<div style="text-align:center;color:var(--ink3);font-size:0.85rem;padding:20px 0;">${res.error}</div>`; return; }
+    if (!res.leaderboard.length) { el.innerHTML = `<div style="text-align:center;color:var(--ink3);font-size:0.85rem;padding:20px 0;">No qualified participants yet.</div>`; return; }
+    el.innerHTML = res.leaderboard.map(p => {
+      const isSpecial = p.prize === "special";
+      const bg = isSpecial ? "linear-gradient(135deg,#fff8e8,#fef3d0)" : "var(--blush)";
+      const border = isSpecial ? "1.5px solid #e8c96a" : "1.5px solid var(--blush2)";
+      const icon = isSpecial ? "🥇" : "🥈";
+      return `<div style="display:flex;align-items:center;gap:10px;padding:11px 12px;background:${bg};border:${border};border-radius:10px;margin-bottom:8px;">
+        <div style="font-size:1.2rem;flex-shrink:0;">${icon}</div>
+        <div style="font-size:0.78rem;font-family:'DM Mono',monospace;color:var(--ink3);flex-shrink:0;min-width:24px;">#${p.rank}</div>
+        <div style="flex:1;font-size:0.9rem;font-weight:500;">${p.name}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.9rem;color:var(--rose2);font-weight:500;">${p.totalPoints}pts</div>
+      </div>`;
+    }).join("");
+  } catch(e) {}
+}
+
+// Floor plan viewer
+function openFloorplan() {
+  document.getElementById("fp-overlay").classList.add("show");
+  document.body.style.overflow = "hidden";
+}
+function closeFloorplan() {
+  document.getElementById("fp-overlay").classList.remove("show");
+  document.body.style.overflow = "";
+}
+// Close with Escape key
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") closeFloorplan();
+});
 </script>
 </body>
 </html>
