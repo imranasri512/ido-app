@@ -592,6 +592,44 @@ textarea{resize:none;min-height:68px;}
               <label class="fl">Comments (optional)</label>
               <textarea id="fb-comment" placeholder="Share what you learnt or any thoughts…"></textarea>
             </div>
+
+            <!-- Session 4 extra questions — shown only for S4 -->
+            <div id="s4-questions" class="hidden">
+              <hr class="divider">
+              <div class="card-title" style="font-size:1rem;margin-bottom:3px;">Program evaluation</div>
+              <div class="card-sub">As this is the final session, please share your thoughts on the overall program.</div>
+              <div class="field">
+                <label class="fl">Apakah yang paling anda sukai tentang program ini?</label>
+                <textarea id="s4-q1" placeholder="Tulis jawapan anda di sini…"></textarea>
+              </div>
+              <div class="field">
+                <label class="fl">Apakah yang biskita perolehi daripada program ini?</label>
+                <textarea id="s4-q2" placeholder="Tulis jawapan anda di sini…"></textarea>
+              </div>
+              <div class="field">
+                <label class="fl">Cadangan pembaikan</label>
+                <textarea id="s4-q3" placeholder="Tulis cadangan anda di sini…"></textarea>
+              </div>
+              <div class="field">
+                <label class="fl">Jika ada program siri kedua dijalankan di masa depan, adakah biskita berminat untuk mengikutinya?</label>
+                <div style="display:flex;gap:10px;margin-top:6px;">
+                  <button type="button" class="s4-radio-btn" onclick="setS4Radio(this,'ya')" data-val="ya"
+                    style="flex:1;padding:11px;border-radius:9px;border:1.5px solid var(--blush3);background:var(--blush);color:var(--ink2);font-family:'DM Sans',sans-serif;font-size:0.88rem;cursor:pointer;transition:all 0.18s;">
+                    Ya, berminat
+                  </button>
+                  <button type="button" class="s4-radio-btn" onclick="setS4Radio(this,'tidak')" data-val="tidak"
+                    style="flex:1;padding:11px;border-radius:9px;border:1.5px solid var(--blush3);background:var(--blush);color:var(--ink2);font-family:'DM Sans',sans-serif;font-size:0.88rem;cursor:pointer;transition:all 0.18s;">
+                    Tidak pasti
+                  </button>
+                </div>
+                <input type="hidden" id="s4-q4" value="">
+              </div>
+              <div class="field">
+                <label class="fl">Apakah topik / forum yang ingin biskita hadiri di masa akan datang?</label>
+                <textarea id="s4-q5" placeholder="Cadangkan topik atau forum yang diminati…"></textarea>
+              </div>
+            </div>
+
             <button class="btn btn-rose" id="submit-ci-btn" onclick="submitCheckin()">
               Submit &amp; Check in ✓
             </button>
@@ -952,8 +990,19 @@ function resetVerified() {
   sessId = null; sessLabel = null; stars = 0;
   document.getElementById("verified-banner").classList.add("hidden");
   document.getElementById("feedback-section").classList.add("hidden");
+  document.getElementById("s4-questions").classList.add("hidden");
   document.querySelectorAll(".star").forEach(s => s.classList.remove("active"));
-  document.getElementById("fb-comment").value = "";
+  document.querySelectorAll(".s4-radio-btn").forEach(b => {
+    b.style.background = "var(--blush)";
+    b.style.borderColor = "var(--blush3)";
+    b.style.color = "var(--ink2)";
+    b.style.fontWeight = "400";
+  });
+  ["fb-comment","s4-q1","s4-q2","s4-q3","s4-q5"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
+  });
+  document.getElementById("s4-q4").value = "";
   clearAlert("ci-alert"); clearAlert("pass-alert");
 }
 
@@ -982,7 +1031,26 @@ function onVerified(id, label) {
     "✓ " + label + " — verified! Complete the feedback below to check in.";
   document.getElementById("verified-banner").classList.remove("hidden");
   document.getElementById("feedback-section").classList.remove("hidden");
+
+  // Show S4 extra questions only for session S4
+  const isS4 = id.toUpperCase() === "S4";
+  document.getElementById("s4-questions").classList.toggle("hidden", !isS4);
+
   stopScanner();
+}
+
+function setS4Radio(btn, val) {
+  document.querySelectorAll(".s4-radio-btn").forEach(b => {
+    b.style.background    = "var(--blush)";
+    b.style.borderColor   = "var(--blush3)";
+    b.style.color         = "var(--ink2)";
+    b.style.fontWeight    = "400";
+  });
+  btn.style.background  = "var(--rose2)";
+  btn.style.borderColor = "var(--rose2)";
+  btn.style.color       = "white";
+  btn.style.fontWeight  = "500";
+  document.getElementById("s4-q4").value = val;
 }
 
 // QR
@@ -1053,13 +1121,34 @@ function setStar(v) {
 async function submitCheckin() {
   if (!sessId) { alert$("ci-alert", "No session verified.", "error"); return; }
   if (stars === 0) { alert$("ci-alert", "Please rate this session first.", "error"); return; }
+  // Validate S4 extra questions if on session 4
+  if (sessId && sessId.toUpperCase() === "S4") {
+    const q4val = document.getElementById("s4-q4").value;
+    if (!q4val) {
+      alert$("ci-alert", "Sila pilih jawapan untuk soalan program siri kedua.", "error");
+      return;
+    }
+  }
+
   const btn = document.getElementById("submit-ci-btn");
   btn.innerHTML = '<span class="spinner"></span>Submitting…'; btn.disabled = true;
+
+  // Collect S4 answers if applicable
+  const isS4 = sessId && sessId.toUpperCase() === "S4";
+  const s4Data = isS4 ? {
+    s4_q1: document.getElementById("s4-q1").value.trim(),
+    s4_q2: document.getElementById("s4-q2").value.trim(),
+    s4_q3: document.getElementById("s4-q3").value.trim(),
+    s4_q4: document.getElementById("s4-q4").value,
+    s4_q5: document.getElementById("s4-q5").value.trim(),
+  } : {};
+
   try {
     const res = await apiPost({
       action: "submitFeedback", code: curCode,
       session: sessId, rating: stars,
-      comment: document.getElementById("fb-comment").value.trim()
+      comment: document.getElementById("fb-comment").value.trim(),
+      ...s4Data
     });
     if (res.ok) {
       document.getElementById("ci-suc-name").textContent = res.name;
