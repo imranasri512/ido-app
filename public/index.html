@@ -921,6 +921,25 @@ function resetVerified() {
   clearAlert("ci-alert"); clearAlert("pass-alert");
 }
 
+// Check if already checked in before showing feedback form
+async function verifyAndCheck(id, label, alertId) {
+  try {
+    const prog = await api({ action: "progress", code: curCode });
+    if (prog.ok && prog.sessionsAttended.includes(id)) {
+      // Already checked in for this session
+      alert$(alertId,
+        "You have already completed " + label + ". See your progress for details.",
+        "error"
+      );
+      stopScanner();
+      return;
+    }
+  } catch(e) {
+    // If progress check fails, still allow check-in attempt
+  }
+  onVerified(id, label);
+}
+
 function onVerified(id, label) {
   sessId = id; sessLabel = label;
   document.getElementById("verified-msg").textContent =
@@ -971,7 +990,7 @@ async function handleQR(data) {
   if (!token) return;
   try {
     const res = await api({ action: "verifySession", token });
-    if (res.ok) onVerified(res.sessionId, res.label);
+    if (res.ok) await verifyAndCheck(res.sessionId, res.label, "ci-alert");
     else alert$("ci-alert", res.error, "error");
   } catch(e) { alert$("ci-alert", "Connection error.", "error"); }
 }
@@ -983,7 +1002,7 @@ async function submitPass() {
   clearAlert("pass-alert");
   try {
     const res = await api({ action: "verifyPass", pass });
-    if (res.ok) onVerified(res.sessionId, res.label);
+    if (res.ok) await verifyAndCheck(res.sessionId, res.label, "pass-alert");
     else alert$("pass-alert", res.error, "error");
   } catch(e) { alert$("pass-alert", "Connection error.", "error"); }
 }
@@ -1095,7 +1114,7 @@ async function loadSessions() {
         </div>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
           <span style="font-size:0.7rem;color:var(--ink3);">Pass:</span>
-          <span class="pass-display">${s["Session Pass"]}</span>
+          <span class="pass-display">${s["Session Pass"] ? String(s["Session Pass"]).padStart(4,"0") : "—"}</span>
           <a href="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(qrUrl)}"
              target="_blank" style="color:var(--rose);font-size:0.78rem;">↗ Open QR</a>
         </div>
